@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FraudGuard AI | Real-Time Fraud Detection</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --success: #4cc9f0;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo i {
+            font-size: 2.5rem;
+            color: var(--success);
+            background: rgba(76, 201, 240, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+        }
+
+        .logo h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(45deg, #4cc9f0, #4361ee);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+        }
+
+        .logo span {
+            color: var(--danger);
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 25px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            padding: 15px 25px;
+            border-radius: 12px;
+            border-left: 4px solid var(--success);
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-card.warning {
+            border-left-color: var(--warning);
+        }
+
+        .stat-card.danger {
+            border-left-color: var(--danger);
+        }
+
+        .stat-card h3 {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        /* Main Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        /* Input Panel */
+        .input-panel {
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .panel-title i {
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .panel-title h2 {
+            font-size: 1.8rem;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+            font-weight: 600;
+        }
+
+        .range-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, #4361ee, #f72585);
+            border-radius: 10px;
+            outline: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid var(--primary);
+        }
+
+        .amount-display {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            margin: 15px 0;
+            color: var(--success);
+        }
+
+        .select-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        select {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.07);
+            border: 2px solid rgba(255,255,255,0.1);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        select option {
+            background: var(--dark);
+            color: white;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-detect {
+            background: linear-gradient(45deg, #4361ee, #3a0ca3);
+            color: white;
+        }
+
+        .btn-reset {
+            background: rgba(255,255,255,0.1);
+            color: #aaa;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Results Panel */
+        .results-panel {
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .risk-meter {
+            text-align: center;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(26,26,46,0.9), rgba(58,12,163,0.3));
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .risk-score {
+            font-size: 5rem;
+            font-weight: 900;
+            margin: 20px 0;
+            background: linear-gradient(45deg, #4cc9f0, #f72585);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .risk-label {
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding: 10px 30px;
+            border-radius: 50px;
+            display: inline-block;
+        }
+
+        .low-risk { background: rgba(76, 201, 240, 0.2); color: var(--success); }
+        .medium-risk { background: rgba(248, 150, 30, 0.2); color: var(--warning); }
+        .high-risk { background: rgba(247, 37, 133, 0.2); color: var(--danger); }
+
+        .factors {
+            margin-top: 30px;
+        }
+
+        .factor-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .factor-item:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateX(5px);
+        }
+
+        .factor-severity {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .high { background: rgba(247, 37, 133, 0.3); color: #ff6b9d; }
+        .medium { background: rgba(248, 150, 30, 0.3); color: #ffc107; }
+        .low { background: rgba(76, 201, 240, 0.3); color: #4cc9f0; }
+
+        /* Charts Section */
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .chart-container {
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .chart-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: var(--success);
+        }
+
+        canvas {
+            max-height: 300px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .api-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(67, 97, 238, 0.2);
+            padding: 10px 20px;
+            border-radius: 50px;
+            margin-top: 15px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .select-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .stats-bar {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Glow Effects */
+        .glow {
+            box-shadow: 0 0 20px rgba(76, 201, 240, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <div>
+                    <h1>Fraud<span>Guard</span> AI</h1>
+                    <p style="color: #aaa; font-size: 1rem;">Real-time Credit Card Fraud Detection System</p>
+                </div>
+            </div>
+            <div class="stats-bar">
+                <div class="stat-card">
+                    <h3>TOTAL TRANSACTIONS</h3>
+                    <p>284,807</p>
+                </div>
+                <div class="stat-card warning">
+                    <h3>FRAUD RATE</h3>
+                    <p>0.172%</p>
+                </div>
+                <div class="stat-card danger">
+                    <h3>FRAUD DETECTED</h3>
+                    <p>492</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Input Panel -->
+            <div class="input-panel">
+                <div class="panel-title">
+                    <i class="fas fa-credit-card"></i>
+                    <h2>Transaction Analysis</h2>
+                </div>
+                
+                <div class="input-group">
+                    <div class="range-label">
+                        <label>Transaction Amount</label>
+                        <span id="amountValue" style="color: var(--success); font-weight: 700;">$150.00</span>
+                    </div>
+                    <input type="range" id="amountSlider" min="1" max="10000" value="150" step="1">
+                    <div class="amount-display" id="amountDisplay">$150</div>
+                </div>
+
+                <div class="input-group">
+                    <label><i class="fas fa-clock"></i> Time of Transaction</label>
+                    <input type="range" id="timeSlider" min="0" max="23" value="14" step="1">
+                    <div style="text-align: center; margin-top: 10px;">
+                        <span id="timeValue" style="font-size: 1.3rem; font-weight: 700;">2:00 PM</span>
+                    </div>
+                </div>
+
+                <div class="select-group">
+                    <div class="input-group">
+                        <label><i class="fas fa-store"></i> Merchant Category</label>
+                        <select id="merchantSelect">
+                            <option value="grocery">🛒 Grocery Store</option>
+                            <option value="gas">⛽ Gas Station</option>
+                            <option value="dining">🍽️ Restaurant</option>
+                            <option value="retail">🛍️ Retail Store</option>
+                            <option value="electronics" selected>💻 Electronics</option>
+                            <option value="travel">✈️ Travel Agency</option>
+                            <option value="digital">🌐 Digital Services</option>
+                            <option value="other">📦 Other</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label><i class="fas fa-globe"></i> Transaction Country</label>
+                        <select id="countrySelect">
+                            <option value="us" selected>🇺🇸 United States</option>
+                            <option value="in">🇮🇳 India</option>
+                            <option value="uk">🇬🇧 United Kingdom</option>
+                            <option value="ca">🇨🇦 Canada</option>
+                            <option value="au">🇦🇺 Australia</option>
+                            <option value="de">🇩🇪 Germany</option>
+                            <option value="fr">🇫🇷 France</option>
+                            <option value="jp">🇯🇵 Japan</option>
+                            <option value="sg">🇸🇬 Singapore</option>
+                            <option value="ae">🇦🇪 UAE (Dubai)</option>
+                            <option value="ru">🇷🇺 Russia</option>
+                            <option value="ng">🇳🇬 Nigeria</option>
+                            <option value="br">🇧🇷 Brazil</option>
+                            <option value="mx">🇲🇽 Mexico</option>
+                            <option value="za">🇿🇦 South Africa</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn btn-detect" id="detectBtn">
+                        <i class="fas fa-search"></i> ANALYZE FOR FRAUD
+                    </button>
+                    <button class="btn btn-reset" id="resetBtn">
+                        <i class="fas fa-redo"></i> RESET
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="results-panel">
+                <div class="panel-title">
+                    <i class="fas fa-chart-bar"></i>
+                    <h2>Risk Analysis Results</h2>
+                </div>
+
+                <div class="risk-meter">
+                    <p style="color: #aaa; margin-bottom: 10px;">FRAUD PROBABILITY SCORE</p>
+                    <div class="risk-score" id="riskScore">--</div>
+                    <div class="risk-label low-risk" id="riskLabel">LOW RISK</div>
+                    <div style="margin-top: 20px; color: #aaa;">
+                        <i class="fas fa-info-circle"></i> Score ranges from 0 (Legitimate) to 100 (Confirmed Fraud)
+                    </div>
+                </div>
+
+                <div class="factors">
+                    <h3 style="margin-bottom: 20px;"><i class="fas fa-exclamation-triangle"></i> Risk Factors Detected</h3>
+                    <div id="factorsList">
+                        <div class="factor-item">
+                            <span><i class="fas fa-money-bill-wave"></i> High Transaction Amount</span>
+                            <span class="factor-severity high">HIGH</span>
+                        </div>
+                        <div class="factor-item">
+                            <span><i class="fas fa-moon"></i> Unusual Transaction Time</span>
+                            <span class="factor-severity medium">MEDIUM</span>
+                        </div>
+                        <div class="factor-item">
+                            <span><i class="fas fa-plane"></i> Travel Merchant Category</span>
+                            <span class="factor-severity high">HIGH</span>
+                        </div>
+                        <div class="factor-item">
+                            <span><i class="fas fa-history"></i> First Transaction with Merchant</span>
+                            <span class="factor-severity low">LOW</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-chart-pie"></i>
+                    <h3>Fraud Distribution by Category</h3>
+                </div>
+                <canvas id="categoryChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Risk Score Timeline</h3>
+                </div>
+                <canvas id="timelineChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>© 2024 FraudGuard AI | Real-time Machine Learning Fraud Detection System</p>
+            <div class="api-badge">
+                <i class="fas fa-code"></i>
+                <span>API Endpoint: POST /api/predict</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Initialize Charts
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+
+        // Pie Chart for Fraud Distribution
+        const categoryChart = new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Grocery', 'Electronics', 'Travel', 'Retail', 'Digital', 'Other'],
+                datasets: [{
+                    data: [5, 35, 25, 15, 12, 8],
+                    backgroundColor: [
+                        '#4cc9f0',
+                        '#f72585',
+                        '#f8961e',
+                        '#7209b7',
+                        '#4361ee',
+                        '#3a0ca3'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 15
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: 'white',
+                            padding: 20,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Line Chart for Timeline
+        const timelineChart = new Chart(timelineCtx, {
+            type: 'line',
+            data: {
+                labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM', '3 PM', '6 PM', '9 PM'],
+                datasets: [{
+                    label: 'Fraud Risk Score',
+                    data: [85, 92, 45, 30, 25, 35, 50, 75],
+                    borderColor: '#f72585',
+                    backgroundColor: 'rgba(247, 37, 133, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#4cc9f0',
+                    pointRadius: 6,
+                    pointHoverRadius: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            color: 'rgba(255,255,255,0.1)'
+                        },
+                        ticks: {
+                            color: 'white'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255,255,255,0.1)'
+                        },
+                        ticks: {
+                            color: 'white'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'white',
+                            font: {
+                                size: 14
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // UI Interactions
+        const amountSlider = document.getElementById('amountSlider');
+        const amountValue = document.getElementById('amountValue');
+        const amountDisplay = document.getElementById('amountDisplay');
+        const timeSlider = document.getElementById('timeSlider');
+        const timeValue = document.getElementById('timeValue');
+        const detectBtn = document.getElementById('detectBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const riskScore = document.getElementById('riskScore');
+        const riskLabel = document.getElementById('riskLabel');
+
+        // Format currency
+        function formatCurrency(amount) {
+            return '$' + parseFloat(amount).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // Format time
+        function formatTime(hour) {
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const hour12 = hour % 12 || 12;
+            return `${hour12}:00 ${ampm}`;
+        }
+
+        // Update amount display
+        amountSlider.addEventListener('input', function() {
+            const value = formatCurrency(this.value);
+            amountValue.textContent = value;
+            amountDisplay.textContent = formatCurrency(this.value);
+            
+            // Pulse animation
+            amountDisplay.classList.add('pulse');
+            setTimeout(() => amountDisplay.classList.remove('pulse'), 300);
+        });
+
+        // Update time display
+        timeSlider.addEventListener('input', function() {
+            timeValue.textContent = formatTime(parseInt(this.value));
+        });
+
+        // Detect Fraud Button
+        detectBtn.addEventListener('click', function() {
+            // Simulate API call
+            detectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ANALYZING...';
+            detectBtn.disabled = true;
+            
+            // Get input values
+            const amount = parseInt(amountSlider.value);
+            const time = parseInt(timeSlider.value);
+            const merchant = document.getElementById('merchantSelect').value;
+            const country = document.getElementById('countrySelect').value;
+            
+            // Simulate API delay
+            setTimeout(() => {
+                // Generate random score based on inputs
+                let baseScore = 0;
+                
+                // Amount factor
+                if (amount > 5000) baseScore += 65;
+                else if (amount > 1000) baseScore += 40;
+                else if (amount > 500) baseScore += 25;
+                
+                // Time factor (3 AM is riskiest)
+                if (time >= 0 && time <= 5) baseScore += 40;
+                else if (time >= 21 || time <= 2) baseScore += 25;
+                
+                // Merchant factor
+                const merchantScores = {
+                    'travel': 35,
+                    'electronics': 30,
+                    'digital': 25,
+                    'gas': 15,
+                    'retail': 10,
+                    'dining': 5,
+                    'grocery': 0,
+                    'other': 20
+                };
+                baseScore += merchantScores[merchant] || 0;
+                
+                // Country factor - UPDATED WITH INDIA
+                const countryScores = {
+                    'ru': 30,
+                    'ng': 30,
+                    'br': 15,
+                    'us': 0,
+                    'in': 10,  // India - medium risk
+                    'uk': 5,
+                    'ca': 5,
+                    'au': 5,
+                    'de': 8,
+                    'fr': 10,
+                    'jp': 8,
+                    'sg': 5,
+                    'ae': 15,
+                    'mx': 15,
+                    'za': 18
+                };
+                baseScore += countryScores[country] || 0;
+                
+                // Add some randomness
+                baseScore += Math.random() * 10;
+                baseScore = Math.min(98, Math.max(2, baseScore));
+                
+                // Update UI
+                riskScore.textContent = Math.round(baseScore);
+                
+                // Update risk label
+                riskLabel.className = 'risk-label ';
+                if (baseScore >= 70) {
+                    riskLabel.classList.add('high-risk');
+                    riskLabel.textContent = 'HIGH RISK';
+                    riskScore.style.background = 'linear-gradient(45deg, #f72585, #ff006e)';
+                } else if (baseScore >= 40) {
+                    riskLabel.classList.add('medium-risk');
+                    riskLabel.textContent = 'MEDIUM RISK';
+                    riskScore.style.background = 'linear-gradient(45deg, #f8961e, #ff9e00)';
+                } else {
+                    riskLabel.classList.add('low-risk');
+                    riskLabel.textContent = 'LOW RISK';
+                    riskScore.style.background = 'linear-gradient(45deg, #4cc9f0, #4895ef)';
+                }
+                
+                // Add glow effect
+                riskScore.parentElement.classList.add('glow');
+                
+                // Reset button
+                detectBtn.innerHTML = '<i class="fas fa-check"></i> ANALYSIS COMPLETE';
+                setTimeout(() => {
+                    detectBtn.innerHTML = '<i class="fas fa-search"></i> ANALYZE FOR FRAUD';
+                    detectBtn.disabled = false;
+                }, 2000);
+                
+            }, 1500);
+        });
+
+        // Reset Button
+        resetBtn.addEventListener('click', function() {
+            amountSlider.value = 150;
+            timeSlider.value = 14;
+            document.getElementById('merchantSelect').value = 'electronics';
+            document.getElementById('countrySelect').value = 'us';
+            
+            amountValue.textContent = formatCurrency(150);
+            amountDisplay.textContent = formatCurrency(150);
+            timeValue.textContent = formatTime(14);
+            
+            riskScore.textContent = '--';
+            riskLabel.className = 'risk-label low-risk';
+            riskLabel.textContent = 'LOW RISK';
+            riskScore.style.background = 'linear-gradient(45deg, #4cc9f0, #f72585)';
+            riskScore.parentElement.classList.remove('glow');
+        });
+
+        // Initialize displays
+        amountValue.textContent = formatCurrency(amountSlider.value);
+        amountDisplay.textContent = formatCurrency(amountSlider.value);
+        timeValue.textContent = formatTime(timeSlider.value);
+    </script>
+</body>
+</html>
